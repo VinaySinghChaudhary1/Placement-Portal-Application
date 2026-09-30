@@ -1,0 +1,83 @@
+<template>
+  <div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h3 class="mb-0">{{ data ? data.student.full_name : 'Student' }} — Report</h3>
+      <router-link :to="`/admin/students/${id}/profile`" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-person-vcard me-1"></i>View profile
+      </router-link>
+    </div>
+
+    <div v-if="loading" class="text-center py-5"><span class="spinner-border text-primary"></span></div>
+    <template v-else-if="data">
+      <div class="row g-3">
+        <div class="col-md-7">
+          <div class="card p-3">
+            <h6>Applications submitted, by month</h6>
+            <canvas ref="lineChart" height="200"></canvas>
+          </div>
+        </div>
+        <div class="col-md-5">
+          <div class="card p-3">
+            <h6>Applications by status</h6>
+            <div v-if="hasStatusData" class="chart-box"><canvas ref="pieChart"></canvas></div>
+            <p v-else class="text-muted small mb-0">This student hasn't applied to any drives yet.</p>
+          </div>
+        </div>
+      </div>
+    </template>
+  </div>
+</template>
+
+<script>
+import Chart from 'chart.js/auto'
+import adminService from '@/services/adminService'
+
+export default {
+  name: 'AdminStudentReport',
+  props: { id: { type: [String, Number], required: true } },
+  data() {
+    return { data: null, loading: false, lineInstance: null, pieInstance: null }
+  },
+  computed: {
+    hasStatusData() {
+      return this.data && Object.keys(this.data.status_breakdown || {}).length > 0
+    }
+  },
+  async created() {
+    this.loading = true
+    try {
+      const { data } = await adminService.studentReports(this.id)
+      this.data = data
+      this.$nextTick(this.renderCharts)
+    } finally { this.loading = false }
+  },
+  methods: {
+    renderCharts() {
+      if (this.$refs.lineChart) {
+        if (this.lineInstance) this.lineInstance.destroy()
+        this.lineInstance = new Chart(this.$refs.lineChart, {
+          type: 'line',
+          data: {
+            labels: this.data.monthly_applications.map((m) => m.label),
+            datasets: [{
+              label: 'Applications',
+              data: this.data.monthly_applications.map((m) => m.count),
+              borderColor: '#0d6efd', backgroundColor: 'rgba(13,110,253,0.15)', tension: 0.3, fill: true
+            }]
+          },
+          options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+        })
+      }
+      if (this.$refs.pieChart && this.hasStatusData) {
+        if (this.pieInstance) this.pieInstance.destroy()
+        const labels = Object.keys(this.data.status_breakdown).map((k) => k.replace('_', ' '))
+        const values = Object.values(this.data.status_breakdown)
+        this.pieInstance = new Chart(this.$refs.pieChart, {
+          type: 'pie',
+          data: { labels, datasets: [{ data: values, backgroundColor: ['#0d6efd', '#fd7e14', '#6f42c1', '#198754', '#dc3545'] }] }
+        })
+      }
+    }
+  }
+}
+</script>

@@ -1,0 +1,69 @@
+:root {
+  --pp-primary: #0d6efd;
+  --pp-dark: #0b2545;
+}
+
+body {
+  background-color: #f5f7fb;
+}
+
+.navbar-brand i {
+  color: var(--pp-primary);
+}
+
+.card {
+  border: 1px solid #e9ecef;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.stat-card {
+  border-radius: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  color: #fff;
+}
+
+.stat-card h3 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.badge-status {
+  text-transform: capitalize;
+  font-weight: 500;
+}
+
+.auth-shell {
+  min-height: calc(100vh - 56px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #eef3ff 0%, #f8fafc 100%);
+}
+
+.auth-card {
+  max-width: 480px;
+  width: 100%;
+}
+
+.drive-card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.drive-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(13, 110, 253, 0.1);
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+/* Fixed-height wrapper for every Chart.js canvas across the report pages.
+   Chart.js's responsive mode sizes the canvas to its parent — without an
+   explicit CSS height here the parent (a plain Bootstrap card) has no
+   height of its own, so the canvas grows unbounded and nothing renders. */
+.chart-box {
+  position: relative;
+  height: 260px;
+}

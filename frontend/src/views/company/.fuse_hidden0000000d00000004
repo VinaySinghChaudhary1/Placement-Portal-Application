@@ -1,0 +1,111 @@
+<template>
+  <div class="container py-4">
+    <h3 class="mb-3">Summary / Report</h3>
+    <div v-if="loading" class="text-center py-5"><span class="spinner-border text-primary"></span></div>
+    <template v-else-if="report">
+      <div class="row g-3 mb-3">
+        <div class="col-md-6">
+          <div class="card p-3">
+            <h6>Drives created, by month</h6>
+            <canvas ref="drivesChart" height="200"></canvas>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card p-3">
+            <h6>Applications received, by month</h6>
+            <canvas ref="applicationsChart" height="200"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="card p-3">
+            <h6>Applications by status</h6>
+            <div v-if="hasStatusData" class="chart-box"><canvas ref="statusChart"></canvas></div>
+            <p v-else class="text-muted small mb-0">No applications received yet.</p>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card p-3">
+            <h6>Top 5 drives by applicants</h6>
+            <div v-if="report.top_drives.length" class="chart-box"><canvas ref="topDrivesChart"></canvas></div>
+            <p v-else class="text-muted small mb-0">No applications received yet.</p>
+          </div>
+        </div>
+      </div>
+    </template>
+  </div>
+</template>
+
+<script>
+import Chart from 'chart.js/auto'
+import companyService from '@/services/companyService'
+
+export default {
+  name: 'CompanyReports',
+  data() {
+    return { report: null, loading: false, charts: [] }
+  },
+  computed: {
+    hasStatusData() {
+      return this.report && Object.keys(this.report.status_breakdown || {}).length > 0
+    }
+  },
+  async created() {
+    this.loading = true
+    try {
+      const { data } = await companyService.reports()
+      this.report = data
+      this.$nextTick(this.renderCharts)
+    } finally { this.loading = false }
+  },
+  methods: {
+    renderCharts() {
+      this.charts.forEach((c) => c.destroy())
+      this.charts = []
+
+      if (this.$refs.drivesChart) {
+        this.charts.push(new Chart(this.$refs.drivesChart, {
+          type: 'bar',
+          data: {
+            labels: this.report.monthly_drives.map((m) => m.label),
+            datasets: [{ label: 'Drives created', data: this.report.monthly_drives.map((m) => m.count), backgroundColor: '#0d6efd' }]
+          },
+          options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+        }))
+      }
+
+      if (this.$refs.applicationsChart) {
+        this.charts.push(new Chart(this.$refs.applicationsChart, {
+          type: 'bar',
+          data: {
+            labels: this.report.monthly_applications.map((m) => m.label),
+            datasets: [{ label: 'Applications received', data: this.report.monthly_applications.map((m) => m.count), backgroundColor: '#198754' }]
+          },
+          options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+        }))
+      }
+
+      if (this.$refs.statusChart && this.hasStatusData) {
+        const labels = Object.keys(this.report.status_breakdown).map((k) => k.replace('_', ' '))
+        const values = Object.values(this.report.status_breakdown)
+        this.charts.push(new Chart(this.$refs.statusChart, {
+          type: 'pie',
+          data: { labels, datasets: [{ data: values, backgroundColor: ['#0d6efd', '#fd7e14', '#6f42c1', '#198754', '#dc3545'] }] }
+        }))
+      }
+
+      if (this.$refs.topDrivesChart && this.report.top_drives.length) {
+        this.charts.push(new Chart(this.$refs.topDrivesChart, {
+          type: 'bar',
+          data: {
+            labels: this.report.top_drives.map((d) => d.job_title),
+            datasets: [{ label: 'Applicants', data: this.report.top_drives.map((d) => d.count), backgroundColor: '#fd7e14' }]
+          },
+          options: { indexAxis: 'y', maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { precision: 0 } } } }
+        }))
+      }
+    }
+  }
+}
+</script>

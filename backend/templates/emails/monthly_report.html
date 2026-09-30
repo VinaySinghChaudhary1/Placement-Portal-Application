@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<body style="font-family: Arial, sans-serif; color:#212529; max-width:640px; margin:auto;">
+  <div style="background:#0d6efd; color:#fff; padding:16px 24px; border-radius:6px 6px 0 0;">
+    <h2 style="margin:0;">Monthly Placement Activity Report</h2>
+    <p style="margin:4px 0 0;">{{ data.period }}</p>
+  </div>
+  <div style="border:1px solid #dee2e6; border-top:none; padding:24px; border-radius:0 0 6px 6px;">
+    <p>Generated: {{ data.generated_at }}</p>
+    <table style="border-collapse:collapse; width:100%; margin:16px 0;">
+      <tr style="background:#f1f5ff;"><td style="padding:8px; border:1px solid #dee2e6;">Drives created</td><td style="padding:8px; border:1px solid #dee2e6;">{{ data.drives_created }}</td></tr>
+      <tr><td style="padding:8px; border:1px solid #dee2e6;">Drives conducted (approved)</td><td style="padding:8px; border:1px solid #dee2e6;">{{ data.drives_conducted }}</td></tr>
+      <tr style="background:#f1f5ff;"><td style="padding:8px; border:1px solid #dee2e6;">Students who applied</td><td style="padding:8px; border:1px solid #dee2e6;">{{ data.students_applied }}</td></tr>
+      <tr><td style="padding:8px; border:1px solid #dee2e6;">Total applications</td><td style="padding:8px; border:1px solid #dee2e6;">{{ data.applications_count }}</td></tr>
+      <tr style="background:#f1f5ff;"><td style="padding:8px; border:1px solid #dee2e6;">Students selected</td><td style="padding:8px; border:1px solid #dee2e6;">{{ data.students_selected }}</td></tr>
+      <tr><td style="padding:8px; border:1px solid #dee2e6;">Companies onboarded</td><td style="padding:8px; border:1px solid #dee2e6;">{{ data.companies_onboarded }}</td></tr>
+    </table>
+
+    {% if data.top_companies %}
+    <h3>Top companies this month</h3>
+    <table style="border-collapse:collapse; width:100%;">
+      <tr style="background:#198754; color:#fff;"><td style="padding:6px;">Company</td><td style="padding:6px;">Drives</td><td style="padding:6px;">Applications</td></tr>
+      {% for row in data.top_companies %}
+      <tr><td style="padding:6px; border:1px solid #dee2e6;">{{ row[0] }}</td><td style="padding:6px; border:1px solid #dee2e6;">{{ row[1] }}</td><td style="padding:6px; border:1px solid #dee2e6;">{{ row[2] }}</td></tr>
+      {% endfor %}
+    </table>
+    {% endif %}
+
+    <p style="color:#6c757d; font-size:12px; margin-top:24px;">A detailed PDF version of this report is attached. Generated automatically by the Placement Portal.</p>
+  </div>
+</body>
+</html>

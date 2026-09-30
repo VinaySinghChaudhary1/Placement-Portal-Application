@@ -1,0 +1,22 @@
+# Flask-Security-Too depends on passlib, which does `import pkg_resources` at
+# import time. setuptools >= 82 dropped pkg_resources entirely, which crashes
+# the app with "ModuleNotFoundError: No module named 'pkg_resources'" even
+# though setuptools itself installed fine. Pinning below keeps pkg_resources
+# available. (Tracked upstream: pallets-eco/flask-security#1096)
+setuptools<82
+
+Flask==3.1.2
+Flask-SQLAlchemy==3.1.1
+Flask-Security-Too==5.6.2
+Flask-Caching==2.3.1
+flask-cors==6.0.1
+Flask-Mail==0.10.0
+argon2-cffi==25.1.0
+celery==5.5.3
+redis==7.1.0
+SQLAlchemy==2.0.43
+matplotlib==3.10.7
+reportlab==4.2.5
+python-dateutil==2.9.0.post0
+email-validator==2.3.0
+Werkzeug==3.1.3

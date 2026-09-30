@@ -1,0 +1,20 @@
+# backend
+backend/.venv/
+backend/instance/
+backend/static/uploads/resumes/*
+!backend/static/uploads/resumes/.gitkeep
+backend/static/exports/*
+!backend/static/exports/.gitkeep
+backend/__pycache__/
+backend/**/__pycache__/
+*.pyc
+celerybeat-schedule*
+
+# frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+
+# OS
+.DS_Store
+Thumbs.db
