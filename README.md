@@ -125,6 +125,38 @@ the backend at `http://127.0.0.1:5000` by default — override with a `.env` fil
 Both scheduled jobs can also be run on demand from **Admin → Reports** without
 waiting for the schedule, which is the easiest way to demo them.
 
+## Public pages: design system
+
+The public-facing pages — **Home**, **Login**, **Register (student/company)**,
+**Contact**, and the shared **Navbar**/**Footer** — use a small motion-driven
+design system layered on top of Bootstrap 5. Logged-in dashboard pages
+(admin/company/student) are intentionally untouched by this: it's additive,
+namespaced CSS, not a global restyle.
+
+- `frontend/src/assets/styles/motion.css` — gradient/shadow/radius tokens,
+  hero/blob/card/button styles, all under a `.pp-*` prefix so nothing collides
+  with existing Bootstrap or dashboard classes.
+- `frontend/src/directives/reveal.js` — a `v-reveal` Vue directive (optionally
+  `v-reveal="1"`–`v-reveal="4"` for a staggered delay) that fades/slides an
+  element in once it scrolls into view, via a single `IntersectionObserver`.
+  No animation library was added on purpose — this keeps `npm install`
+  untouched and avoids adding a render-heavy 3D engine for what is, underneath,
+  a college placement portal. `prefers-reduced-motion: reduce` disables all of
+  it for users who've asked their OS for less motion.
+- **Contact page** (`/contact`) — new public route with a message form. Update
+  the placeholder email/phone/address in `Footer.vue` and `Contact.vue` with
+  the real placement cell details before sharing this outside a local demo.
+
+## Contact form endpoint
+
+`POST /api/contact` (public, no login required — see Security notes below) validates
+name/email/message, emails the seeded admin account via the existing SMTP setup,
+and falls back to an in-app `Notification` if mail delivery fails. It has its own
+abuse guards since it's the one endpoint in the app that doesn't require a token:
+a per-IP rate limit (5 messages / 15 minutes, in-memory — resets on backend restart),
+a honeypot field, and email format/length validation (`email-validator`, already
+in `requirements.txt`).
+
 ## Troubleshooting
 
 **`ModuleNotFoundError: No module named 'pkg_resources'`** (on `python app.py` or
@@ -174,3 +206,32 @@ itself is correct.
   (approve/reject/blacklist).
 - The database file lives at `backend/instance/placement.sqlite3` and is created
   fresh on first run — delete it (with the app stopped) to reset all data.
+
+## Security notes
+
+- **Auth is token-based, not cookie-based** — the SPA stores the
+  `Authentication-Token` Flask-Security issues on login and sends it as a
+  header on every request (`frontend/src/services/api.js`). There are no
+  session cookies to steal via CSRF, which is why `WTF_CSRF_ENABLED = False`
+  is safe here — CSRF tokens exist to protect cookie-based sessions.
+- **CORS is locked to the known dev origins** (`http://localhost:8080` /
+  `127.0.0.1:8080`) in `app.py` — not a wildcard. Update this list (and the
+  frontend's `VITE_API_URL`) if you ever deploy somewhere else.
+- **Every dashboard route is role-gated twice**: once client-side (Vue Router
+  `beforeEach` in `frontend/src/router/index.js`, redirects unauthenticated or
+  wrong-role users before a page even renders) and again server-side
+  (`@role_required("admin"/"company"/"student")` on every API route) — the
+  client-side check is a UX nicety, the server-side one is the real boundary.
+- **File exports are ownership-checked**: `/api/exports/<path>` only serves a
+  file if a `Notification` proves it belongs to the requesting user, so one
+  account can't download another's CSV export by guessing a filename.
+- **The new `/api/contact` endpoint is the one deliberate exception** to "every
+  route requires a token" — see "Contact form endpoint" above for its specific
+  guards (rate limit, honeypot, validated email, stripped control characters
+  before anything reaches an email header).
+- **Before any real deployment** (this project ships configured for local dev
+  only): move `SECRET_KEY` and `SECURITY_PASSWORD_SALT` in
+  `application/config.py` out of source and into environment variables, put
+  the app behind HTTPS, and set `SESSION_COOKIE_SECURE`/`PREFERRED_URL_SCHEME`
+  accordingly. None of this is needed to run the project locally for the
+  MAD-II submission, but it's not production-hardened as committed.

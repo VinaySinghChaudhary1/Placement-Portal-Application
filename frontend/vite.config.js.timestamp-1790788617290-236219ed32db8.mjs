@@ -1,0 +1,28 @@
+// vite.config.js
+import { fileURLToPath, URL } from "node:url";
+import { defineConfig } from "file:///sessions/great-upbeat-brown/mnt/Placement%20Project%20MAD%20II/placement-portal/frontend/node_modules/vite/dist/node/index.js";
+import vue from "file:///sessions/great-upbeat-brown/mnt/Placement%20Project%20MAD%20II/placement-portal/frontend/node_modules/@vitejs/plugin-vue/dist/index.mjs";
+var __vite_injected_original_import_meta_url = "file:///sessions/great-upbeat-brown/mnt/Placement%20Project%20MAD%20II/placement-portal/frontend/vite.config.js";
+var vite_config_default = defineConfig({
+  plugins: [vue()],
+  resolve: {
+    alias: {
+      "@": fileURLToPath(new URL("./src", __vite_injected_original_import_meta_url))
+    }
+  },
+  server: {
+    port: 8080,
+    // Polling instead of native filesystem events: on WSL2 with the project
+    // living on a Windows drive (/mnt/...), inotify events from edits made
+    // outside the WSL VM are unreliable, which can make HMR/dev-server
+    // updates silently stale. Polling is slightly heavier but always correct.
+    watch: {
+      usePolling: true,
+      interval: 300
+    }
+  }
+});
+export {
+  vite_config_default as default
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsidml0ZS5jb25maWcuanMiXSwKICAic291cmNlc0NvbnRlbnQiOiBbImNvbnN0IF9fdml0ZV9pbmplY3RlZF9vcmlnaW5hbF9kaXJuYW1lID0gXCIvc2Vzc2lvbnMvZ3JlYXQtdXBiZWF0LWJyb3duL21udC9QbGFjZW1lbnQgUHJvamVjdCBNQUQgSUkvcGxhY2VtZW50LXBvcnRhbC9mcm9udGVuZFwiO2NvbnN0IF9fdml0ZV9pbmplY3RlZF9vcmlnaW5hbF9maWxlbmFtZSA9IFwiL3Nlc3Npb25zL2dyZWF0LXVwYmVhdC1icm93bi9tbnQvUGxhY2VtZW50IFByb2plY3QgTUFEIElJL3BsYWNlbWVudC1wb3J0YWwvZnJvbnRlbmQvdml0ZS5jb25maWcuanNcIjtjb25zdCBfX3ZpdGVfaW5qZWN0ZWRfb3JpZ2luYWxfaW1wb3J0X21ldGFfdXJsID0gXCJmaWxlOi8vL3Nlc3Npb25zL2dyZWF0LXVwYmVhdC1icm93bi9tbnQvUGxhY2VtZW50JTIwUHJvamVjdCUyME1BRCUyMElJL3BsYWNlbWVudC1wb3J0YWwvZnJvbnRlbmQvdml0ZS5jb25maWcuanNcIjtpbXBvcnQgeyBmaWxlVVJMVG9QYXRoLCBVUkwgfSBmcm9tICdub2RlOnVybCdcbmltcG9ydCB7IGRlZmluZUNvbmZpZyB9IGZyb20gJ3ZpdGUnXG5pbXBvcnQgdnVlIGZyb20gJ0B2aXRlanMvcGx1Z2luLXZ1ZSdcblxuZXhwb3J0IGRlZmF1bHQgZGVmaW5lQ29uZmlnKHtcbiAgcGx1Z2luczogW3Z1ZSgpXSxcbiAgcmVzb2x2ZToge1xuICAgIGFsaWFzOiB7XG4gICAgICAnQCc6IGZpbGVVUkxUb1BhdGgobmV3IFVSTCgnLi9zcmMnLCBpbXBvcnQubWV0YS51cmwpKVxuICAgIH1cbiAgfSxcbiAgc2VydmVyOiB7XG4gICAgcG9ydDogODA4MCxcbiAgICAvLyBQb2xsaW5nIGluc3RlYWQgb2YgbmF0aXZlIGZpbGVzeXN0ZW0gZXZlbnRzOiBvbiBXU0wyIHdpdGggdGhlIHByb2plY3RcbiAgICAvLyBsaXZpbmcgb24gYSBXaW5kb3dzIGRyaXZlICgvbW50Ly4uLiksIGlub3RpZnkgZXZlbnRzIGZyb20gZWRpdHMgbWFkZVxuICAgIC8vIG91dHNpZGUgdGhlIFdTTCBWTSBhcmUgdW5yZWxpYWJsZSwgd2hpY2ggY2FuIG1ha2UgSE1SL2Rldi1zZXJ2ZXJcbiAgICAvLyB1cGRhdGVzIHNpbGVudGx5IHN0YWxlLiBQb2xsaW5nIGlzIHNsaWdodGx5IGhlYXZpZXIgYnV0IGFsd2F5cyBjb3JyZWN0LlxuICAgIHdhdGNoOiB7XG4gICAgICB1c2VQb2xsaW5nOiB0cnVlLFxuICAgICAgaW50ZXJ2YWw6IDMwMFxuICAgIH1cbiAgfVxufSlcbiJdLAogICJtYXBwaW5ncyI6ICI7QUFBaWIsU0FBUyxlQUFlLFdBQVc7QUFDcGQsU0FBUyxvQkFBb0I7QUFDN0IsT0FBTyxTQUFTO0FBRjhQLElBQU0sMkNBQTJDO0FBSS9ULElBQU8sc0JBQVEsYUFBYTtBQUFBLEVBQzFCLFNBQVMsQ0FBQyxJQUFJLENBQUM7QUFBQSxFQUNmLFNBQVM7QUFBQSxJQUNQLE9BQU87QUFBQSxNQUNMLEtBQUssY0FBYyxJQUFJLElBQUksU0FBUyx3Q0FBZSxDQUFDO0FBQUEsSUFDdEQ7QUFBQSxFQUNGO0FBQUEsRUFDQSxRQUFRO0FBQUEsSUFDTixNQUFNO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQSxJQUtOLE9BQU87QUFBQSxNQUNMLFlBQVk7QUFBQSxNQUNaLFVBQVU7QUFBQSxJQUNaO0FBQUEsRUFDRjtBQUNGLENBQUM7IiwKICAibmFtZXMiOiBbXQp9Cg==

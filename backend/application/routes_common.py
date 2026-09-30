@@ -1,9 +1,13 @@
 # backend/application/routes_common.py
 import os
+import time
+import re
+from collections import defaultdict
 from flask import Blueprint, request, current_app as app, send_from_directory
 from flask_security import current_user
+from email_validator import validate_email, EmailNotValidError
 
-from application.models import db, CompanyProfile, PlacementDrive, DriveStatus, ApprovalStatus, Notification, Application
+from application.models import db, User, CompanyProfile, PlacementDrive, DriveStatus, ApprovalStatus, Notification, Application
 from application.auth_utils import any_authenticated, role_required
 
 common_bp = Blueprint("common_bp", __name__, url_prefix="/api")
@@ -73,6 +77,95 @@ def mark_all_notifications_read():
     Notification.query.filter_by(user_id=current_user.id, is_read=False).update({"is_read": True})
     db.session.commit()
     return {"message": "All notifications marked as read."}, 200
+
+
+# ---------------------------------------------------------------- contact form
+# In-memory per-IP cooldown (process-local; resets on restart). A college-project
+# scale deployment doesn't warrant pulling in Redis-backed rate limiting just for
+# this one public, unauthenticated endpoint — but it's the one endpoint in the
+# whole app that accepts input from someone who isn't logged in at all, so it
+# needs *some* abuse guard rather than none.
+_contact_attempts = defaultdict(list)
+_CONTACT_MAX_PER_WINDOW = 5
+_CONTACT_WINDOW_SECONDS = 15 * 60
+
+
+def _contact_rate_limited(ip):
+    now = time.time()
+    attempts = [t for t in _contact_attempts[ip] if now - t < _CONTACT_WINDOW_SECONDS]
+    _contact_attempts[ip] = attempts
+    if len(attempts) >= _CONTACT_MAX_PER_WINDOW:
+        return True
+    attempts.append(now)
+    return False
+
+
+@common_bp.route("/contact", methods=["POST"])
+def submit_contact():
+    """Public contact form — intentionally has no @any_authenticated /
+    @role_required decorator, since a visitor who hasn't registered yet is
+    exactly who this is for. Every other endpoint in the app requires a valid
+    Authentication-Token; this is the one deliberate exception, so it gets its
+    own validation, length limits and rate limiting instead of relying on auth
+    to keep abuse out."""
+    # Deliberately NOT trusting X-Forwarded-For here: this app isn't run behind
+    # a reverse proxy, so that header is fully attacker-controlled input and
+    # trusting it would make the rate limit trivially bypassable (send a
+    # different fake value each request). If this is ever deployed behind
+    # Nginx/a load balancer, switch to Werkzeug's ProxyFix middleware in
+    # app.py rather than reading the header directly here.
+    ip = request.remote_addr or "unknown"
+    if _contact_rate_limited(ip):
+        return {"message": "Too many messages sent recently. Please try again later."}, 429
+
+    data = request.get_json(silent=True) or {}
+
+    # Honeypot: a hidden field real users never see or fill. Bots that
+    # autofill every field will populate it — report success without
+    # actually sending anything, so the bot has no signal to adapt to.
+    if (data.get("company_website") or "").strip():
+        return {"message": "Thanks — your message has been sent."}, 200
+
+    name = (data.get("name") or "").strip()
+    email = (data.get("email") or "").strip()
+    subject = (data.get("subject") or "General enquiry").strip()
+    message = (data.get("message") or "").strip()
+
+    if not (2 <= len(name) <= 100):
+        return {"message": "Please enter your name (2-100 characters)."}, 400
+    if not (10 <= len(message) <= 2000):
+        return {"message": "Message must be between 10 and 2000 characters."}, 400
+    if len(subject) > 150:
+        return {"message": "Subject is too long."}, 400
+    # Strip any stray control characters from free-text fields before they're
+    # ever written into an email body.
+    name = re.sub(r"[\r\n\t]+", " ", name)
+    subject = re.sub(r"[\r\n\t]+", " ", subject)
+
+    try:
+        valid = validate_email(email, check_deliverability=False)
+        email = valid.normalized
+    except EmailNotValidError:
+        return {"message": "Please enter a valid email address."}, 400
+
+    from application.mail_helper import send_email
+    admin_user = User.query.join(User.roles).filter_by(name="admin").first()
+    recipient = admin_user.email if admin_user else app.config.get("SENDER_ADDRESS")
+
+    sent = send_email(
+        recipient,
+        f"[Contact form] {subject}",
+        f"New message from the Placement Portal contact page.\n\n"
+        f"Name: {name}\nEmail: {email}\nSubject: {subject}\n\nMessage:\n{message}\n",
+    )
+    if not sent:
+        db.session.add(Notification(
+            user_id=admin_user.id, title="New contact form message", type="system",
+            message=f"{name} ({email}): {subject}",
+        )) if admin_user else None
+        db.session.commit()
+
+    return {"message": "Thanks — your message has been sent. We'll get back to you soon."}, 200
 
 
 @common_bp.route("/exports/<path:filename>", methods=["GET"])

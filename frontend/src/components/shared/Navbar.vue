@@ -1,16 +1,22 @@
 <template>
-  <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
+  <nav class="navbar navbar-expand-lg navbar-light sticky-top pp-nav-glass" :class="{ 'pp-scrolled': scrolled }">
     <div class="container">
       <button v-if="isLoggedIn" class="btn btn-light me-2" title="Toggle sidebar" @click="toggleSidebar">
         <i class="bi bi-list fs-5"></i>
       </button>
-      <router-link class="navbar-brand fw-bold" :to="homeLink">
-        <i class="bi bi-mortarboard-fill me-2"></i>Placement Portal
+      <router-link class="navbar-brand fw-bold d-flex align-items-center" :to="homeLink">
+        <span class="pp-brand-icon me-2"><i class="bi bi-mortarboard-fill"></i></span>Placement Portal
       </router-link>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="nav">
+        <ul class="navbar-nav me-auto align-items-lg-center">
+          <li class="nav-item"><router-link class="nav-link pp-nav-link" to="/home">Home</router-link></li>
+          <li class="nav-item"><router-link class="nav-link pp-nav-link" to="/contact">Contact</router-link></li>
+          <li v-if="isLoggedIn" class="nav-item"><router-link class="nav-link pp-nav-link" :to="dashboardLink">Dashboard</router-link></li>
+        </ul>
+
         <ul class="navbar-nav ms-auto align-items-lg-center" v-if="isLoggedIn">
           <li class="nav-item dropdown me-2">
             <a class="nav-link position-relative" href="#" role="button" data-bs-toggle="dropdown" @click="loadNotifications">
@@ -46,13 +52,13 @@
             <ul class="dropdown-menu dropdown-menu-end">
               <li v-if="profileLink"><router-link class="dropdown-item" :to="profileLink"><i class="bi bi-person me-2"></i>My profile</router-link></li>
               <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item text-danger" href="#" @click.prevent="logout"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+              <li><a class="dropdown-item text-danger" href="#" @click.prevent="logout"><i class="bi bi-box-arrow-right me-2"></i>Sign out</a></li>
             </ul>
           </li>
         </ul>
-        <ul class="navbar-nav ms-auto" v-else>
-          <li class="nav-item"><router-link class="nav-link" to="/login">Login</router-link></li>
-          <li class="nav-item"><router-link class="btn btn-primary btn-sm ms-2" to="/register/student">Get started</router-link></li>
+        <ul class="navbar-nav ms-auto align-items-lg-center" v-else>
+          <li class="nav-item"><router-link class="nav-link pp-nav-link" to="/login">Login</router-link></li>
+          <li class="nav-item ms-lg-2 mt-2 mt-lg-0"><router-link class="btn btn-sm pp-btn-gradient px-3" to="/register/student">Get started</router-link></li>
         </ul>
       </div>
     </div>
@@ -66,14 +72,20 @@ import { downloadFromLink } from '@/services/download'
 export default {
   name: 'Navbar',
   data() {
-    return { downloadError: null }
+    return { downloadError: null, scrolled: false }
   },
   computed: {
     ...mapGetters('auth', ['isLoggedIn', 'role', 'displayName']),
     ...mapState('notifications', { notifications: 'items', unreadCount: 'unreadCount' }),
     homeLink() {
-      // The brand/logo always goes to the public homepage — the "Dashboard" link
-      // in the nav (see `links` below) is what takes a logged-in user to their dashboard.
+      // The brand/logo always goes to the public homepage — "Dashboard" in the
+      // nav links (above) is what takes a logged-in user to their dashboard.
+      return '/home'
+    },
+    dashboardLink() {
+      if (this.role === 'admin') return '/admin'
+      if (this.role === 'company') return '/company'
+      if (this.role === 'student') return '/student'
       return '/home'
     },
     profileLink() {
@@ -82,7 +94,17 @@ export default {
       return null
     }
   },
+  mounted() {
+    window.addEventListener('scroll', this.onScroll, { passive: true })
+    this.onScroll()
+  },
+  beforeUnmount() {
+    window.removeEventListener('scroll', this.onScroll)
+  },
   methods: {
+    onScroll() {
+      this.scrolled = window.scrollY > 8
+    },
     toggleSidebar() {
       this.$store.commit('ui/toggleSidebar')
     },
@@ -113,3 +135,17 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.pp-brand-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 0.6rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--pp-gradient-brand);
+  color: #fff;
+  font-size: 1rem;
+}
+</style>

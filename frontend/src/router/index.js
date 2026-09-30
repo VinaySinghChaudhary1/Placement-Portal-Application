@@ -5,6 +5,7 @@ import store from '@/store'
 const routes = [
   { path: '/', redirect: '/home' },
   { path: '/home', name: 'Home', component: () => import('@/views/Home.vue') },
+  { path: '/contact', name: 'Contact', component: () => import('@/views/Contact.vue') },
   { path: '/login', name: 'Login', component: () => import('@/views/auth/Login.vue') },
   { path: '/register/student', name: 'RegisterStudent', component: () => import('@/views/auth/RegisterStudent.vue') },
   { path: '/register/company', name: 'RegisterCompany', component: () => import('@/views/auth/RegisterCompany.vue') },

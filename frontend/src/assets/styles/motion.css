@@ -1,0 +1,292 @@
+/* frontend/src/assets/styles/motion.css
+ *
+ * Shared design system for the PUBLIC-facing pages only (Home, Login, Register,
+ * Contact, Navbar, Footer). Logged-in dashboard pages are untouched by this file
+ * — nothing here overrides Bootstrap defaults globally, everything is opt-in via
+ * new classes (pp-*) so existing dashboard markup keeps rendering exactly as
+ * before.
+ *
+ * Motion is CSS + a tiny IntersectionObserver directive (see
+ * src/directives/reveal.js) rather than a 3D engine — same visual energy
+ * (scroll reveals, parallax tilt, animated gradients, floating shapes) with
+ * no new dependency, no WebGL, and no extra load time.
+ */
+
+:root {
+  --pp-blue: #0d6efd;
+  --pp-indigo: #6f42c1;
+  --pp-violet: #7c3aed;
+  --pp-teal: #198754;
+  --pp-amber: #fd7e14;
+  --pp-ink: #0b2545;
+
+  --pp-gradient-hero: linear-gradient(135deg, #0b2545 0%, #163172 35%, #4338ca 70%, #7c3aed 100%);
+  --pp-gradient-brand: linear-gradient(135deg, #0d6efd 0%, #6f42c1 100%);
+  --pp-gradient-student: linear-gradient(135deg, #0d6efd 0%, #22d3ee 100%);
+  --pp-gradient-company: linear-gradient(135deg, #198754 0%, #22d3ee 100%);
+  --pp-gradient-mesh: radial-gradient(at 20% 20%, rgba(99, 102, 241, 0.35) 0, transparent 50%),
+                      radial-gradient(at 80% 0%, rgba(34, 211, 238, 0.25) 0, transparent 50%),
+                      radial-gradient(at 80% 80%, rgba(124, 58, 237, 0.3) 0, transparent 50%);
+
+  --pp-shadow-soft: 0 10px 30px -12px rgba(11, 37, 69, 0.18);
+  --pp-shadow-glow: 0 20px 50px -15px rgba(99, 102, 241, 0.45);
+  --pp-radius-lg: 1.25rem;
+  --pp-radius-xl: 1.75rem;
+}
+
+/* ---------------------------------------------------------------- reveal */
+/* Default hidden state; a small IntersectionObserver directive (v-reveal)
+   toggles .is-visible once the element scrolls into view. Respecting
+   prefers-reduced-motion means we never rely on motion alone to reveal
+   content for users who've asked for less of it. */
+.pp-reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+.pp-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.pp-reveal[data-reveal-delay="1"] { transition-delay: 0.08s; }
+.pp-reveal[data-reveal-delay="2"] { transition-delay: 0.16s; }
+.pp-reveal[data-reveal-delay="3"] { transition-delay: 0.24s; }
+.pp-reveal[data-reveal-delay="4"] { transition-delay: 0.32s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pp-reveal { opacity: 1; transform: none; transition: none; }
+  .pp-float, .pp-blob, .pp-gradient-anim, .pp-pulse { animation: none !important; }
+}
+
+/* ---------------------------------------------------------------- hero */
+.pp-hero {
+  position: relative;
+  overflow: hidden;
+  background: var(--pp-gradient-hero);
+  background-size: 200% 200%;
+  color: #fff;
+  isolation: isolate;
+}
+.pp-hero.pp-gradient-anim { animation: pp-gradient-shift 18s ease infinite; }
+.pp-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--pp-gradient-mesh);
+  z-index: 0;
+}
+.pp-hero > * { position: relative; z-index: 1; }
+
+@keyframes pp-gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* floating decorative blobs behind hero content */
+.pp-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(4px);
+  opacity: 0.55;
+  z-index: 0;
+  animation: pp-float 9s ease-in-out infinite;
+}
+@keyframes pp-float {
+  0%, 100% { transform: translateY(0) translateX(0) rotate(0deg); }
+  50% { transform: translateY(-22px) translateX(10px) rotate(6deg); }
+}
+
+.pp-pulse { animation: pp-pulse 3.2s ease-in-out infinite; }
+@keyframes pp-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+
+/* ---------------------------------------------------------------- buttons */
+.pp-btn-gradient {
+  background: var(--pp-gradient-brand);
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  box-shadow: var(--pp-shadow-glow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+.pp-btn-gradient:hover, .pp-btn-gradient:focus-visible {
+  color: #fff;
+  transform: translateY(-2px);
+  filter: brightness(1.08);
+  box-shadow: 0 24px 55px -14px rgba(99, 102, 241, 0.55);
+}
+.pp-btn-ghost-light {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #fff;
+  font-weight: 600;
+  backdrop-filter: blur(6px);
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+.pp-btn-ghost-light:hover, .pp-btn-ghost-light:focus-visible {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.18);
+  transform: translateY(-2px);
+}
+
+/* ---------------------------------------------------------------- cards */
+.pp-card {
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: var(--pp-radius-lg);
+  box-shadow: var(--pp-shadow-soft);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease, border-color 0.35s ease;
+}
+.pp-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 24px 46px -18px rgba(11, 37, 69, 0.28);
+  border-color: rgba(99, 102, 241, 0.25);
+}
+.pp-card-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: #fff;
+  background: var(--pp-gradient-brand);
+  box-shadow: 0 10px 22px -8px rgba(99, 102, 241, 0.55);
+}
+
+/* ---------------------------------------------------------------- misc */
+.pp-eyebrow {
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.pp-section { padding-block: clamp(3rem, 6vw, 5.5rem); }
+.pp-counter { font-weight: 800; font-variant-numeric: tabular-nums; }
+
+.pp-step-line {
+  position: absolute;
+  top: 28px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.35), transparent);
+}
+
+/* glass navbar, only active once the page has scrolled (see Navbar.vue) */
+.pp-nav-glass {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: saturate(180%) blur(14px);
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
+  transition: box-shadow 0.25s ease, background 0.25s ease;
+}
+.pp-nav-glass.pp-scrolled {
+  box-shadow: 0 8px 28px -14px rgba(11, 37, 69, 0.25);
+}
+.pp-nav-link {
+  position: relative;
+}
+.pp-nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0.5rem;
+  right: 0.5rem;
+  bottom: 0.15rem;
+  height: 2px;
+  background: var(--pp-gradient-brand);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.25s ease;
+}
+.pp-nav-link:hover::after, .pp-nav-link.router-link-active::after {
+  transform: scaleX(1);
+}
+
+/* footer */
+.pp-footer {
+  background: var(--pp-ink);
+  color: rgba(255, 255, 255, 0.72);
+}
+.pp-footer a { color: rgba(255, 255, 255, 0.72); text-decoration: none; transition: color 0.15s ease; }
+.pp-footer a:hover { color: #fff; }
+.pp-footer h6 { color: #fff; }
+.pp-social-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+.pp-social-btn:hover { background: var(--pp-gradient-brand); transform: translateY(-2px); }
+
+/* split-panel auth layout */
+.pp-auth-shell {
+  min-height: calc(100vh - 56px);
+  display: grid;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 992px) {
+  .pp-auth-shell { grid-template-columns: 5fr 7fr; }
+}
+.pp-auth-panel {
+  position: relative;
+  overflow: hidden;
+  background: var(--pp-gradient-hero);
+  background-size: 200% 200%;
+  color: #fff;
+  display: none;
+}
+@media (min-width: 992px) {
+  .pp-auth-panel { display: flex; }
+}
+.pp-auth-form-side {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1.5rem, 4vw, 3.5rem);
+  background: #f5f7fb;
+}
+.pp-auth-card {
+  width: 100%;
+  max-width: 480px;
+  background: #fff;
+  border-radius: var(--pp-radius-lg);
+  box-shadow: var(--pp-shadow-soft);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+/* floating-label-ish inputs used on the redesigned auth forms */
+.pp-field .form-control,
+.pp-field .form-select {
+  border-radius: 0.65rem;
+  border: 1px solid #dfe4ee;
+  padding: 0.65rem 0.9rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.pp-field .form-control:focus,
+.pp-field .form-select:focus {
+  border-color: var(--pp-blue);
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+.pp-field label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 0.3rem;
+}
+
+.pp-shake { animation: pp-shake 0.4s ease; }
+@keyframes pp-shake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-4px); }
+  40%, 60% { transform: translateX(4px); }
+}
